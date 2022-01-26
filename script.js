@@ -1,48 +1,38 @@
-const apikey = "3265874a2c77ae4a04bb96236a642d2f";
-
-const main = document.getElementById("main");
-const form = document.getElementById("form");
-const search = document.getElementById("search");
-
-const url = (city) =>
-    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apikey}`;
-
-async function getWeatherByLocation(city) {
-    const resp = await fetch(url(city), { origin: "cors" });
-    const respData = await resp.json();
-
-    console.log(respData);
-
-    addWeatherToPage(respData);
-}
-
-function addWeatherToPage(data) {
-    const temp = KtoC(data.main.temp);
-
-    const weather = document.createElement("div");
-    weather.classList.add("weather");
-
-    weather.innerHTML = `
-        <h2><img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" /> ${temp}°C <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" /></h2>
-        <small>${data.weather[0].main}</small>
-    `;
-
-    // cleanup
-    main.innerHTML = "";
-
-    main.appendChild(weather);
-}
-
-function KtoC(K) {
-    return Math.floor(K - 273.15);
-}
-
-form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const city = search.value;
-
-    if (city) {
-        getWeatherByLocation(city);
+let weather={
+    apiKey:"66d13df2482431df0b2c33d3348c2362",
+    fetchWeather: function(city){
+        fetch("https://api.openweathermap.org/data/2.5/weather?q="
+        + city+
+        "&units=metric&appid="
+        + this.apiKey
+        ).then((response) => response.json())
+        .then((data) => this.displayWeather(data)); 
+    },
+    displayWeather:function(data){
+        const { name }=data;
+        const {icon, description}=data.weather[0];
+        const {temp,humidity}=data.main;
+        const {speed}=data.wind;
+        console.log(name,icon,description,temp,humidity,speed);
+        document.querySelector(".city").innerHTML="Weather in "+name;
+        document.querySelector(".temp").innerHTML=temp+"°C";
+        document.querySelector(".wind").innerHTML="Wind speed:"+speed +" km/h";
+        document.querySelector(".humidity").innerHTML="Humidity:"+humidity+"%";
+        document.querySelector(".description").innerHTML=description;
+        document.querySelector(".icon").src="https://openweathermap.org/img/wn/"+icon+"@2x.png";
+    },
+    search: function(){
+        this.fetchWeather(document.querySelector(".search-bar").value);
     }
-});
+};
+
+document.querySelector(".search button").addEventListener("click", function(){
+    weather.search();
+})
+document.querySelector(".search-bar").addEventListener("keyup",function(event){
+    if(event.key == "Enter"){
+        weather.search();
+    }
+})
+
+weather.fetchWeather("Denver");
